@@ -46,7 +46,7 @@ export default function Farms(){
             <input value={form.district} onChange={e=>setForm({...form, district:e.target.value})}/>
           </label>
         </div>
-        <button>Thêm nông trường</button>
+  <button className="btn btn-primary">Thêm nông trường</button>
         {msg && <p>{msg}</p>}
       </form>
 
@@ -68,5 +68,5 @@ export default function Farms(){
     </section>
   );
 }
-const th = { border:'1px solid #ddd', padding:8, background:'#f6f6f6' };
-const td = { border:'1px solid #ddd', padding:8 };
+const th = { padding:10, borderBottom:'1px solid #e5e7eb', textAlign:'left' };
+const td = { borderBottom:'1px solid #f0f0f0', padding:10 };

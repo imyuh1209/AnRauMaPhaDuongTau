@@ -1,22 +1,49 @@
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { authLogout, authMe } from './api';
+import { useEffect, useState } from 'react';
 
 export default function App(){
-  const link = { color:'#fff', textDecoration:'none' };
+  const [user, setUser] = useState(null);
+  const nav = useNavigate();
+  useEffect(()=>{ (async()=>{ try{ const me = await authMe(); setUser(me.user); }catch{ /* ignore */ } })() },[]);
+  function doLogout(){ authLogout(); setUser(null); nav('/login'); }
   return (
     <div>
-      <header style={{padding:'12px 20px', background:'#0b6', color:'#fff', display:'flex', gap:16, alignItems:'center'}}>
-        <h1 style={{margin:0}}>Rubber Tracker</h1>
-        <nav style={{display:'flex', gap:12}}>
-          <Link to="/" style={link}>Dashboard</Link>
-          <Link to="/farms" style={link}>Farms</Link>
-          <Link to="/plots" style={link}>Plots</Link>
-          <Link to="/plans" style={link}>Plans</Link>
-          <Link to="/conversions" style={link}>Conversions</Link>
-          <Link to="/rubber-types" style={link}>Rubber Types</Link>
-
-        </nav>
+      <header className="app-header">
+        <div className="bar container">
+          <div className="brand">
+            <NavLink to="/app" className="brand-link" end>
+              <img src="/logoRubber1.png" alt="Logo" className="brand-logo" />
+              {/* <span>Quản lý Cao su</span> */}
+            </NavLink>
+          </div>
+          <nav className="nav">
+            <NavLink to="/app" end className={({isActive})=>`nav-link ${isActive?'active':''}`}>Tổng quan</NavLink>
+            <NavLink to="/app/farms" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Nông trường</NavLink>
+            <NavLink to="/app/plots" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Lô</NavLink>
+            <NavLink to="/app/plans" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Kế hoạch</NavLink>
+            <NavLink to="/app/actuals" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Thực tế</NavLink>
+            <NavLink to="/app/conversions" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Quy đổi</NavLink>
+            <NavLink to="/app/rubber-types" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Loại mủ</NavLink>
+          </nav>
+          <div className="nav-spacer" />
+          <div className="row" style={{color:'#fff'}}>
+            {user ? (
+              <>
+                <span className="muted">Xin chào</span>
+                <strong>{user.username}</strong>
+                <button className="btn btn-ghost" onClick={doLogout}>Đăng xuất</button>
+              </>
+            ) : (
+              <>
+                <NavLink to="/login" className="nav-link">Đăng nhập</NavLink>
+                <NavLink to="/register" className="btn btn-secondary">Đăng ký</NavLink>
+              </>
+            )}
+          </div>
+        </div>
       </header>
-      <main style={{padding:20}}><Outlet /></main>
+      <main className="container"><Outlet /></main>
     </div>
   );
 }

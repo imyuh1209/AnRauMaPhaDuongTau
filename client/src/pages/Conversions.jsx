@@ -49,7 +49,7 @@ export default function Conversions(){
           <input type="number" step="0.0001" value={form.factor_to_dry_ton}
                  onChange={e=>setForm({...form, factor_to_dry_ton:e.target.value})} required/>
         </label>
-        <button>Lưu</button>
+  <button className="btn btn-primary">Lưu</button>
         {msg && <p>{msg}</p>}
       </form>
     </section>
