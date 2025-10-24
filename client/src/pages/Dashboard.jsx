@@ -1,6 +1,15 @@
 // client/src/pages/Dashboard.jsx
 import { useEffect, useState, useCallback } from 'react';
-import { getDashboard, getFarms, saveActual } from '../api';
+import { getDashboard, getFarms, saveActual, getRubberTypes } from '../api';
+
+const normKey = (s) =>
+  (s ?? '')
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // bỏ dấu
+    .replace(/\s+/g, '_');
 
 export default function Dashboard(){
   const today = new Date().toISOString().slice(0,10);
@@ -12,6 +21,27 @@ export default function Dashboard(){
   const [err, setErr] = useState('');
   const [quick, setQuick] = useState({});
   const [savingKey, setSavingKey] = useState('');
+
+  // map loại mủ
+  const [rtMap, setRtMap] = useState({ byCode: Object.create(null), byName: Object.create(null) });
+
+  // nạp Rubber Types & dựng map
+  useEffect(() => {
+    (async () => {
+      try {
+        const rts = await getRubberTypes(); // [{id, code, description, unit}]
+        const byCode = Object.create(null);
+        const byName = Object.create(null);
+        for (const rt of rts || []) {
+          if (rt.code) byCode[normKey(rt.code)] = rt.id;
+          if (rt.description) byName[normKey(rt.description)] = rt.id; // phòng khi BE trả về tên hiển thị
+        }
+        setRtMap({ byCode, byName });
+      } catch {
+        // bỏ qua, vẫn cho xem dashboard
+      }
+    })();
+  }, []);
 
   const load = useCallback(async ()=>{
     setLoading(true); setErr('');
@@ -33,28 +63,48 @@ export default function Dashboard(){
     return '#c33';
   }
 
-  const RUBBER_CODE_TO_ID = { mu_nuoc: 1, mu_tap: 2 };
-
-  async function saveToday(rubberCode){
+  async function saveToday(row) {
     if(!farmId){ alert('Hãy chọn Nông trường trước khi nhập.'); return; }
-    const qtyStr = (quick[rubberCode] ?? '').trim();
+
+    // xác định key & id loại mủ từ row
+    const rawCode = row.rubber_type_code || row.rubber_type || row.code || '';
+    const key = normKey(rawCode);
+    const qtyStr = (quick[key] ?? '').trim();
     const qty = Number(qtyStr || 0);
     if(Number.isNaN(qty)){ alert('Số lượng không hợp lệ'); return; }
-    const rubber_type_id = RUBBER_CODE_TO_ID[rubberCode];
-    if(!rubber_type_id){ alert('Không xác định được loại mủ'); return; }
+
+    // ưu tiên dùng id từ row nếu có; nếu không, map theo code/description
+    let rubber_type_id = row.rubber_type_id
+                      || rtMap.byCode[key]
+                      || rtMap.byName[key];
+
+    if(!rubber_type_id){
+      alert(
+        `Không xác định được loại mủ cho: "${rawCode}".\n` +
+        `Hãy đảm bảo trang Rubber Types có mã/description khớp: ${rawCode}`
+      );
+      return;
+    }
 
     try{
-      setSavingKey(rubberCode);
-      await saveActual({ date, farm_id:Number(farmId), plot_id:null, rubber_type_id, qty, note:'quick-input' });
-      setQuick(prev => ({ ...prev, [rubberCode]: '' }));
+      setSavingKey(key);
+      await saveActual({
+        date,
+        farm_id: Number(farmId),
+        plot_id: null,
+        rubber_type_id,
+        qty,
+        note: 'quick-input'
+      });
+      setQuick(prev => ({ ...prev, [key]: '' }));
       await load();
-    }catch(e){ alert('Lưu thất bại: '+e.message); }
+    }catch(e){ alert('Lưu thất bại: '+ (e?.message || e)); }
     finally{ setSavingKey(''); }
   }
 
   return (
     <section>
-  <h2>Tổng quan</h2>
+      <h2>Tổng quan</h2>
       <div style={{display:'flex',gap:12,alignItems:'end',marginBottom:12}}>
         <label>Ngày<br/>
           <input type="date" value={date} onChange={e=>setDate(e.target.value)} />
@@ -65,7 +115,7 @@ export default function Dashboard(){
             {farms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
           </select>
         </label>
-  <button className="btn btn-primary btn-sm" onClick={load}>Xem</button>
+        <button className="btn btn-primary btn-sm" onClick={load}>Xem</button>
       </div>
 
       {loading && <p>Đang tải…</p>}
@@ -85,10 +135,11 @@ export default function Dashboard(){
         </thead>
         <tbody>
           {rows.map((r,i)=>{
-            const code = r.rubber_type;
+            const display = r.rubber_type || r.rubber_type_code || r.code || '(chưa rõ)';
+            const key = normKey(r.rubber_type_code || r.rubber_type || r.code || '');
             return (
               <tr key={i}>
-                <td style={td}>{code}</td>
+                <td style={td}>{display}</td>
                 <td style={td}>{Number(r.actual_today||0).toLocaleString('vi-VN')}</td>
                 <td style={td}>{Number(r.actual_mtd||0).toLocaleString('vi-VN')}</td>
                 <td style={td}>{r.plan_m==null?'-':Number(r.plan_m||0).toLocaleString('vi-VN')}</td>
@@ -97,12 +148,16 @@ export default function Dashboard(){
                   <div style={{display:'flex', gap:8}}>
                     <input
                       type="number" step="0.001" min="0"
-                      value={quick[code] ?? ''}
-                      onChange={e=>setQuick(prev => ({ ...prev, [code]: e.target.value }))}
+                      value={quick[key] ?? ''}
+                      onChange={e=>setQuick(prev => ({ ...prev, [key]: e.target.value }))}
                       placeholder="kg hôm nay" style={{width:130}} disabled={!farmId}
                     />
-                    <button className="btn btn-primary btn-sm" onClick={()=>saveToday(code)} disabled={!farmId || savingKey===code}>
-                      {savingKey===code ? 'Đang lưu…' : 'Lưu'}
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={()=>saveToday(r)}
+                      disabled={!farmId || savingKey===key}
+                    >
+                      {savingKey===key ? 'Đang lưu…' : 'Lưu'}
                     </button>
                   </div>
                 </td>
