@@ -71,7 +71,7 @@ export default function RubberTypes() {
         <thead>
           <tr>
             <th style={th}>ID</th>
-            <th style={th}>Mã</th>
+            <th style={th}>Loại mủ</th>
             <th style={th}>Đơn vị</th>
             <th style={th}>Mô tả</th>
           </tr>
