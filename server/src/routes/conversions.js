@@ -21,3 +21,22 @@ router.post('/', async (req, res, next) => {
 });
 
 export default router;
+
+// GET /api/conversions?farm_id=optional
+router.get('/', async (req, res, next) => {
+  try {
+    const farm_id = req.query.farm_id ? Number(req.query.farm_id) : null;
+    const params = [];
+    let sql = `SELECT c.id, c.farm_id, f.name AS farm_name, c.rubber_type_id, rt.code AS rubber_type, c.effective_from, c.factor_to_dry_ton
+               FROM conversion c
+               LEFT JOIN farm f ON c.farm_id = f.id
+               JOIN rubber_type rt ON c.rubber_type_id = rt.id`;
+    if (farm_id) {
+      sql += ' WHERE c.farm_id = ?';
+      params.push(farm_id);
+    }
+    sql += ' ORDER BY c.rubber_type_id, c.effective_from DESC';
+    const [rows] = await pool.query(sql, params);
+    res.json(rows);
+  } catch (e) { next(e); }
+});

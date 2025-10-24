@@ -1,6 +1,7 @@
 // client/src/api.js
 // Base URL phải giống server: ví dụ http://localhost:3000/api
 export const API = import.meta.env.VITE_API_URL;
+function getToken(){ try{ return localStorage.getItem('token') || ''; }catch{ return ''; } }
 
 function ensureBaseUrl() {
   if (!API) {
@@ -18,9 +19,12 @@ function ensureBaseUrl() {
 async function j(method, path, body) {
   ensureBaseUrl();
 
+  const headers = { 'Content-Type': 'application/json' };
+  const token = getToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(`${API}${path}`, {
     method,
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: body ? JSON.stringify(body) : undefined,
   });
 
@@ -79,11 +83,35 @@ export const createPlan  = (payload) => j('POST','/plans', payload);
 export const updatePlan  = (id, payload) => j('PUT', `/plans/${id}`, payload);
 export const deletePlan  = (id) => j('DELETE', `/plans/${id}`);
 
+// plan history & utilities
+export const getPlanHistory = (params) => {
+  const qs = new URLSearchParams(params || {}).toString();
+  return j('GET', `/plans/history?${qs}`);
+};
+export const bumpPlanVersion = (payload) => j('POST', '/plans/bump-version', payload);
+export const copyPlans = (payload) => j('POST', '/plans/bulk-copy', payload);
+
 // ===== actuals =====
 export const saveActual  = (payload) => j('POST','/actuals', payload);
+export const listActuals = (params = {}) => {
+  const qs = new URLSearchParams(params).toString();
+  return j('GET', `/actuals?${qs}`);
+};
+export const updateActual = (id, payload) => j('PUT', `/actuals/${id}`, payload);
+export const deleteActual = (id) => j('DELETE', `/actuals/${id}`);
 
 // ===== dashboard =====
 export const getDashboard = (params = {}) => {
   const qs = new URLSearchParams(params).toString();
   return j('GET', `/reports/dashboard?${qs}`);
 };
+
+// ===== auth =====
+export const authRegister = (payload) => j('POST', '/auth/register', payload);
+export const authLogin = async (payload) => {
+  const res = await j('POST', '/auth/login', payload);
+  if (res?.token) localStorage.setItem('token', res.token);
+  return res;
+};
+export const authMe = () => j('GET', '/auth/me');
+export const authLogout = () => { try{ localStorage.removeItem('token'); }catch{ /* ignore */ } return true; };

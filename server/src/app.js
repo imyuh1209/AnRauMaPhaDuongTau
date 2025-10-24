@@ -48,6 +48,7 @@ async function main() {
   const { default: plotsRouter }        = await import('./routes/plots.js');
   const { default: rubberTypesRouter }  = await import('./routes/rubber-types.js');
   const { default: conversionsRouter }  = await import('./routes/conversions.js');
+  const { default: authRouter }         = await import('./routes/auth.js');
 
   // 4) Mount routes
   app.use('/api/farms', farmsRouter);
@@ -57,6 +58,7 @@ async function main() {
   app.use('/api/plots', plotsRouter);
   app.use('/api/rubber-types', rubberTypesRouter);
   app.use('/api/conversions', conversionsRouter);
+  app.use('/api/auth', authRouter);
 
   // 404 JSON
   app.use((req, res) => res.status(404).json({ error: 'Not found', path: req.path }));
@@ -69,7 +71,18 @@ async function main() {
   });
 
   const PORT = Number.parseInt(process.env.PORT || '3000', 10);
-  app.listen(PORT, () => console.log(`🚀 API chạy tại http://localhost:${PORT}`));
+  const server = app.listen(PORT, () => console.log(`🚀 API chạy tại http://localhost:${PORT}`));
+  server.on('close', () => console.log('🛑 HTTP server closed'));
 }
+
+process.on('exit', (code) => {
+  console.log('👋 process.exit with code:', code);
+});
+process.on('uncaughtException', (err) => {
+  console.error('💥 uncaughtException:', err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('💥 unhandledRejection:', reason);
+});
 
 main();

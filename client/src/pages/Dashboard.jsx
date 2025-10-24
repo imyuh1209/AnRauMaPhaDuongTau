@@ -1,5 +1,5 @@
 // client/src/pages/Dashboard.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { getDashboard, getFarms, saveActual } from '../api';
 
 export default function Dashboard(){
@@ -13,7 +13,7 @@ export default function Dashboard(){
   const [quick, setQuick] = useState({});
   const [savingKey, setSavingKey] = useState('');
 
-  async function load(){
+  const load = useCallback(async ()=>{
     setLoading(true); setErr('');
     try{
       const data = await getDashboard({ date, ...(farmId?{farm_id:farmId}:{}) });
@@ -21,10 +21,10 @@ export default function Dashboard(){
       if (!farms.length) setFarms(data.farms || []);
     }catch(e){ setErr(String(e)) }
     setLoading(false);
-  }
+  }, [date, farmId, farms.length]);
 
   useEffect(()=>{ (async()=>{ try{ setFarms(await getFarms()); }catch{ /* empty */ } })() },[]);
-  useEffect(()=>{ load() },[]);
+  useEffect(()=>{ load() },[load]);
 
   function color(pct){
     if(pct == null) return undefined;
@@ -54,7 +54,7 @@ export default function Dashboard(){
 
   return (
     <section>
-      <h2>Dashboard</h2>
+  <h2>Tổng quan</h2>
       <div style={{display:'flex',gap:12,alignItems:'end',marginBottom:12}}>
         <label>Ngày<br/>
           <input type="date" value={date} onChange={e=>setDate(e.target.value)} />
@@ -65,7 +65,7 @@ export default function Dashboard(){
             {farms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
           </select>
         </label>
-        <button onClick={load}>Xem</button>
+  <button className="btn btn-primary btn-sm" onClick={load}>Xem</button>
       </div>
 
       {loading && <p>Đang tải…</p>}
@@ -77,7 +77,7 @@ export default function Dashboard(){
           <tr>
             <th style={th}>Loại mủ</th>
             <th style={th}>Thực tế hôm nay</th>
-            <th style={th}>Thực tế MTD</th>
+            <th style={th}>Thực tế lũy kế (MTD)</th>
             <th style={th}>Kế hoạch tháng</th>
             <th style={th}>% hoàn thành</th>
             <th style={th}>Nhập hôm nay (kg)</th>
@@ -101,7 +101,7 @@ export default function Dashboard(){
                       onChange={e=>setQuick(prev => ({ ...prev, [code]: e.target.value }))}
                       placeholder="kg hôm nay" style={{width:130}} disabled={!farmId}
                     />
-                    <button onClick={()=>saveToday(code)} disabled={!farmId || savingKey===code}>
+                    <button className="btn btn-primary btn-sm" onClick={()=>saveToday(code)} disabled={!farmId || savingKey===code}>
                       {savingKey===code ? 'Đang lưu…' : 'Lưu'}
                     </button>
                   </div>
@@ -115,5 +115,5 @@ export default function Dashboard(){
   );
 }
 
-const th = { border:'1px solid #ddd', padding:8, background:'#f6f6f6', textAlign:'left' };
-const td = { border:'1px solid #ddd', padding:8 };
+const th = { padding:10, borderBottom:'1px solid #e5e7eb', textAlign:'left' };
+const td = { borderBottom:'1px solid #f0f0f0', padding:10 };
