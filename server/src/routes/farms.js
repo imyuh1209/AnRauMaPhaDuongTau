@@ -4,7 +4,7 @@ const router = Router();
 
 router.get('/', async (req,res,next)=>{
   try{
-    const [rows] = await pool.query('SELECT * FROM farm ORDER BY name');
+    const [rows] = await pool.query('SELECT * FROM farm ORDER BY id ASC');
     res.json(rows);
   }catch(e){ next(e); }
 });

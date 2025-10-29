@@ -19,10 +19,10 @@ export default function App(){
           </div>
           <nav className="nav">
             <NavLink to="/app" end className={({isActive})=>`nav-link ${isActive?'active':''}`}>Tiến độ</NavLink>
+            <NavLink to="/app/plans" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Kế hoạch</NavLink>
+            <NavLink to="/app/stats" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Thống kê</NavLink>
             <NavLink to="/app/farms" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Nông trường</NavLink>
             <NavLink to="/app/plots" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Lô</NavLink>
-            <NavLink to="/app/plans" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Kế hoạch</NavLink>
-            <NavLink to="/app/actuals" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Thực tế</NavLink>
             <NavLink to="/app/conversions" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Quy đổi</NavLink>
             <NavLink to="/app/rubber-types" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Loại mủ</NavLink>
           </nav>
@@ -30,6 +30,7 @@ export default function App(){
           <div className="row" style={{color:'#fff'}}>
             {user ? (
               <>
+                <span className="muted">Xin chào</span>
                 <strong>{user.username}</strong>
                 <button className="btn btn-ghost" onClick={doLogout}>Đăng xuất</button>
               </>

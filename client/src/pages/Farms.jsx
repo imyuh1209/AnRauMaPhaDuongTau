@@ -26,7 +26,7 @@ export default function Farms(){
 
   return (
     <section>
-      <h2>Nông trường</h2>
+      <h2>Quản lý Nông trường</h2>
 
       <form onSubmit={submit} style={{display:'grid', gap:10, maxWidth:520, marginBottom:16}}>
         <div style={{display:'grid', gridTemplateColumns:'1fr 160px', gap:10}}>
@@ -46,8 +46,8 @@ export default function Farms(){
             <input value={form.district} onChange={e=>setForm({...form, district:e.target.value})}/>
           </label>
         </div>
-  <button className="btn btn-primary">Thêm nông trường</button>
-        {msg && <p>{msg}</p>}
+        <button className="btn btn-primary">Thêm nông trường</button>
+        {msg && <p className="message info">{msg}</p>}
       </form>
 
       <table style={{borderCollapse:'collapse', width:'100%'}}>

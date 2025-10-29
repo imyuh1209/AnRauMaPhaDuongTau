@@ -65,6 +65,7 @@ export const createFarm = (payload) => j('POST','/farms', payload);
 // ===== plots =====
 export const listPlots  = (farm_id) => j('GET', `/plots?farm_id=${encodeURIComponent(farm_id)}`);
 export const createPlot = (payload) => j('POST','/plots', payload);
+export const deletePlot = (id) => j('DELETE', `/plots/${id}`);
 
 // ===== rubber types =====
 export const getRubberTypes = () => j('GET','/rubber-types');
@@ -73,6 +74,10 @@ export const getRubberTypes = () => j('GET','/rubber-types');
 
 // ===== conversion =====
 export const createConversion = (payload) => j('POST','/conversions', payload);
+export const listConversions = (params = {}) => {
+  const qs = new URLSearchParams(params).toString();
+  return j('GET', `/conversions?${qs}`);
+};
 
 // ===== plans =====
 export const listPlans = (params) => {
@@ -104,6 +109,12 @@ export const deleteActual = (id) => j('DELETE', `/actuals/${id}`);
 export const getDashboard = (params = {}) => {
   const qs = new URLSearchParams(params).toString();
   return j('GET', `/reports/dashboard?${qs}`);
+};
+
+// ===== reports: stats =====
+export const getStats = (params = {}) => {
+  const qs = new URLSearchParams(params).toString();
+  return j('GET', `/reports/stats?${qs}`);
 };
 
 // ===== auth =====

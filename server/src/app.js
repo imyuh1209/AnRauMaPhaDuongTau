@@ -4,7 +4,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { ensureDatabaseAndSchema } from './setup-db.js';
 
-dotenv.config();
+// Ưu tiên các giá trị trong .env, ghi đè biến môi trường hiện có
+dotenv.config({ override: true });
 
 async function main() {
   // 1) Khởi tạo DB + schema khi start (DEV)

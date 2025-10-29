@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { saveActual } from '../api';
+import DateInput from '../components/DateInput.jsx';
 
 export default function ActualForm(){
   const today = new Date().toISOString().slice(0,10);
@@ -24,21 +25,25 @@ export default function ActualForm(){
   return (
     <section>
       <h2>Nhập sản lượng</h2>
-      <form onSubmit={submit} style={{display:'grid', gap:10, maxWidth:420}}>
-        <label>Ngày <input type="date" value={form.date} onChange={e=>setForm({...form, date:e.target.value})} required/></label>
-        <label>Farm ID <input value={form.farm_id} onChange={e=>setForm({...form, farm_id:e.target.value})} required/></label>
-        <label>Plot ID (tuỳ chọn) <input value={form.plot_id} onChange={e=>setForm({...form, plot_id:e.target.value})}/></label>
-        <label>Loại mủ
-          <select value={form.rubber_type_id} onChange={e=>setForm({...form, rubber_type_id:e.target.value})}>
-            <option value="1">mu_nuoc</option>
-            <option value="2">mu_tap</option>
-          </select>
-        </label>
-        <label>Số lượng (kg) <input type="number" step="0.001" value={form.qty} onChange={e=>setForm({...form, qty:e.target.value})} required/></label>
-        <label>Ghi chú <input value={form.note} onChange={e=>setForm({...form, note:e.target.value})}/></label>
-        <button>Lưu</button>
-        {msg && <p>{msg}</p>}
-      </form>
+      <div className="card" style={{maxWidth:520}}>
+        <form onSubmit={submit} style={{display:'grid', gap:10}}>
+          <label>Ngày
+            <DateInput value={form.date} onChange={v=>setForm({...form, date:v})} required/>
+          </label>
+          <label>Farm ID <input value={form.farm_id} onChange={e=>setForm({...form, farm_id:e.target.value})} required/></label>
+          <label>Plot ID (tuỳ chọn) <input value={form.plot_id} onChange={e=>setForm({...form, plot_id:e.target.value})}/></label>
+          <label>Loại mủ
+            <select value={form.rubber_type_id} onChange={e=>setForm({...form, rubber_type_id:e.target.value})}>
+              <option value="1">mu_nuoc</option>
+              <option value="2">mu_tap</option>
+            </select>
+          </label>
+          <label>Số lượng (kg) <input type="number" step="0.001" value={form.qty} onChange={e=>setForm({...form, qty:e.target.value})} required/></label>
+          <label>Ghi chú <input value={form.note} onChange={e=>setForm({...form, note:e.target.value})}/></label>
+          <button className="btn btn-primary">Lưu</button>
+          {msg && <p className="message info">{msg}</p>}
+        </form>
+      </div>
     </section>
   );
 }
